@@ -1,8 +1,7 @@
 ﻿using MySql.Data.MySqlClient;
-
-namespace CrawlCore.Database
+namespace DatabaseCore
 {
-    public class DatabaseHelper
+    public class Database
     {
         private readonly string _server;
         private readonly string _userId;
@@ -24,7 +23,7 @@ namespace CrawlCore.Database
             }
         }
         
-        public DatabaseHelper(string server, string userId, string password, string database)
+        public Database(string server, string userId, string password, string database)
         {
             _server = server;
             _userId = userId;
@@ -32,5 +31,24 @@ namespace CrawlCore.Database
             _database = database;
         }
 
+        public bool CreateScheme<T>() where T : class
+        {
+            return false;
+        }
+
+        public bool UpdateScheme<T>() where T : class
+        {
+            return false;
+        }
+
+        public bool IsTableExist(string tableName)
+        {
+            return false;
+        }
+
+        public bool IsFieldExist(string tableName, string fieldName)
+        {
+            return false;
+        }
     }
 }

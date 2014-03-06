@@ -43,6 +43,8 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scheme\Article.cs" />
+    <Compile Include="Scheme\Category.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -51,6 +53,10 @@
     <ProjectReference Include="..\CrawlCore\CrawlCore.csproj">
       <Project>{d0dbae35-16a1-4ba3-8f9a-9ea2f91ca0f5}</Project>
       <Name>CrawlCore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DatabaseCore\DatabaseCore.csproj">
+      <Project>{f65fe899-327d-43ae-ab2d-1ff091ca65d3}</Project>
+      <Name>DatabaseCore</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
