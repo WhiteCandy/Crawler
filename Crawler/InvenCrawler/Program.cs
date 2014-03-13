@@ -12,8 +12,15 @@ namespace InvenCrawler
     {
         static void Main(string[] args)
         {
-            var table = DatabaseHelper.ToDatabaseScheme<Article>();
-            Console.WriteLine(table.GenerateDDL(DDLType.CreateTable));
+            var database = new Database {
+                Server = "",
+                UserId = "",
+                Password = "",
+                InitialCatalog = "",
+            };
+
+            database.CreateScheme<Article>();
+            database.CreateScheme<Category>();
         }
     }
 }

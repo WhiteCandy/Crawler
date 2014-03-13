@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -83,7 +85,7 @@ namespace DatabaseCore
         {
             var queryBuilder = new StringBuilder();
             queryBuilder.Append(string.Format("CREATE TABLE {0}", table.Name) + Environment.NewLine);
-            queryBuilder.Append("{" + Environment.NewLine);
+            queryBuilder.Append("(" + Environment.NewLine);
             foreach (var elem in table.ElementList)
             {
                 queryBuilder.Append(
@@ -97,7 +99,9 @@ namespace DatabaseCore
                 string.Join(", ", table.ElementList.Where(e => e.IsKey).Select(e => e.Name)),
                 Environment.NewLine));
             
-            queryBuilder.Append("}" + Environment.NewLine);
+            queryBuilder.Append(")" + Environment.NewLine);
+            queryBuilder.Append(@"ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci");
+
             return queryBuilder.ToString();
         }
 

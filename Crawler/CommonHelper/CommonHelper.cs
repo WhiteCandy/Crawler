@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -27,6 +28,26 @@ namespace CommonHelper
         public static bool HasAttribute<T>(this MemberInfo member) where T : Attribute
         {
             return GetAttribute<T>(member) != null;
+        }
+    }
+
+    public static class DataTableHelper
+    {
+        public static void Load(this DataTable table, IDataReader reader, bool createColumns)
+        {
+            if (createColumns)
+            {
+                table.Columns.Clear();
+                var schemaTable = reader.GetSchemaTable();
+                foreach (DataRowView row in schemaTable.DefaultView)
+                {
+                    var columnName = (string)row["ColumnName"];
+                    var type = (Type)row["DataType"];
+                    table.Columns.Add(columnName, type);
+                }
+            }
+
+            table.Load(reader);
         }
     }
 
