@@ -66,22 +66,7 @@ namespace DatabaseCore
             return table;
         }
 
-        public static string GenerateDDL(this Table table, DDLType type)
-        {
-            switch (type)
-            {
-                case DDLType.CreateTable:
-                    return table.CreateTableQuery();
-                case DDLType.ModifyTable:
-                    return table.ModifyTableQuery();
-                case DDLType.DropTable:
-                    return table.DropTableQuery();
-            }
-
-            return null;
-        }
-
-        private static string CreateTableQuery(this Table table)
+        public static string CreateTableQuery(this Table table)
         {
             var queryBuilder = new StringBuilder();
             queryBuilder.Append(string.Format("CREATE TABLE {0}", table.Name) + Environment.NewLine);
@@ -105,9 +90,94 @@ namespace DatabaseCore
             return queryBuilder.ToString();
         }
 
-        private static string ModifyTableQuery(this Table table)
+        public static string ModifyTableQuery(this Database database, Table classSchema, DataTable databaseSchema)
         {
-            return "";
+            // validate field types
+            #region Validate Schema
+
+            foreach (var elem in classSchema.ElementList)
+            {
+                var classElemName = elem.Name;
+                var classElemType = elem.Type;
+                var classElemIsKey = elem.IsKey;
+                var existField = false;
+                foreach (DataRow row in databaseSchema.Rows)
+                {
+                    if (row["ColumnName"].ToString() != classElemName) continue;
+
+                    var dbElemType = ((Type)row["DataType"]).Name.ToDatabaseType();
+                    var dbElemIsKey = (bool)row["IsKey"];
+
+                    if (dbElemType != classElemType)
+                    {
+                        const string errorMessage = "Element [{0}:{1}] type [{2}] and database element type [{3}] is not matched!";
+                        var formattedMessage = string.Format(errorMessage,
+                            classSchema.Name, classElemName, classElemType, dbElemType);
+                        throw new Exception(formattedMessage);
+                    }
+
+                    if (classElemIsKey != dbElemIsKey)
+                    {
+                        const string errorMessage = "Element [{0}:{1}] key setting is not matched!";
+                        var formattedMessage = string.Format(errorMessage,
+                            classSchema.Name, classElemName, classElemType, dbElemType);
+                        throw new Exception(formattedMessage);
+                    }
+
+                    existField = true;
+                    break;
+                }
+
+                if (!existField && classElemIsKey)
+                {
+                    const string errorMessage = "Key setting of table [{0}] can't be change in here. Use tools like phpmyadmin to change key";
+                    var formattedMessage = string.Format(errorMessage, classSchema.Name);
+                    throw new Exception(formattedMessage);
+                }
+            }
+
+            #endregion
+
+            #region Sync Schema
+
+            var queryBuilder = new StringBuilder();
+            var lastColumnName = "";
+            foreach (var elem in classSchema.ElementList)
+            {
+                var classElemName = elem.Name;
+                var classElemType = elem.Type;
+                var existField = false;
+                foreach (DataRow row in databaseSchema.Rows)
+                {
+                    if (row["ColumnName"].ToString() != classElemName) continue;
+                    existField = true;
+                    break;
+                }
+
+                if (!existField)
+                {
+                    if (queryBuilder.Length > 0)
+                        queryBuilder.AppendLine(",");
+                    
+                    var alterQuery = string.Format("\tADD COLUMN {0} {1}", classElemName, classElemType);
+                    queryBuilder.Append(alterQuery);
+                    if(lastColumnName.Length > 0)
+                        queryBuilder.Append(string.Format(" AFTER {0}", lastColumnName));
+                }
+                lastColumnName = classElemName;
+            }
+
+            var alterTableQuery = "";
+            if (queryBuilder.Length > 0)
+            {
+                alterTableQuery = string.Format("ALTER TABLE {0}", classSchema.Name)
+                                  + Environment.NewLine
+                                  + queryBuilder.ToString();
+            }
+
+            return alterTableQuery;
+
+            #endregion
         }
 
         private static string DropTableQuery(this Table table)

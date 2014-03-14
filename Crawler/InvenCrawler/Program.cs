@@ -13,14 +13,14 @@ namespace InvenCrawler
         static void Main(string[] args)
         {
             var database = new Database {
-                Server = "",
-                UserId = "",
-                Password = "",
-                InitialCatalog = "",
+                Server = "localhost",
+                UserId = "test",
+                Password = "test",
+                InitialCatalog = "test",
             };
 
-            database.CreateScheme<Article>();
-            database.CreateScheme<Category>();
+            database.SyncTable<Article>();
+            database.SyncTable<Category>();
         }
     }
 }

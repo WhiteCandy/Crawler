@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.SqlClient;
+using DatabaseCore.Model;
 using MySql.Data.MySqlClient;
 using System.Data;
 namespace DatabaseCore
@@ -24,6 +25,15 @@ namespace DatabaseCore
                 }
                 .ConnectionString;
             }
+        }
+
+        public void SyncTable<T>() where T : class
+        {
+            var table = DatabaseHelper.ToDatabaseScheme<T>();
+            if (!IsTableExist(table.Name))
+                CreateScheme<T>();
+            else
+                UpdateScheme<T>();
         }
 
         public DataTable ExecuteReader(string query)
@@ -52,31 +62,30 @@ namespace DatabaseCore
             }
         }
 
-        public bool CreateScheme<T>() where T : class
+        public void CreateScheme<T>() where T : class
         {
             var table = DatabaseHelper.ToDatabaseScheme<T>();
-            var query = table.GenerateDDL(DDLType.CreateTable);
-
-            Console.WriteLine(query);
+            var query = table.CreateTableQuery();
 
             ExecuteNonQuery(query);
-
-            return true;
         }
 
-        public bool UpdateScheme<T>() where T : class
+        public void UpdateScheme<T>() where T : class
         {
-            return false;
+            var table = DatabaseHelper.ToDatabaseScheme<T>();
+            var query = this.ModifyTableQuery(table, GetTableSchema(table.Name));
+
+            if (query.Trim().Length > 0)
+                ExecuteNonQuery(query);
         }
 
         public bool IsTableExist(string tableName)
         {
-            return false;
-        }
-
-        public bool IsFieldExist(string tableName, string fieldName)
-        {
-            return false;
+            var tableQuery = string.Format(
+                @"SELECT count(*) FROM information_schema.tables WHERE table_schema = '{0}' AND table_name = '{1}'",
+                InitialCatalog, tableName);
+            var result = ExecuteReader(tableQuery);
+            return (long) result.Rows[0][0] > 0;
         }
 
         public DataTable GetTableSchema(string tableName)
