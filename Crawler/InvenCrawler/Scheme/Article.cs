@@ -25,5 +25,7 @@ namespace InvenCrawler.Scheme
         public string Title;
         public string Content;
         public int CommentCount;
+
+        public int TestField;
     }
 }

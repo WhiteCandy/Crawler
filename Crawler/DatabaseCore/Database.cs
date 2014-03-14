@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using DatabaseCore.Model;
 using MySql.Data.MySqlClient;
@@ -50,6 +51,27 @@ namespace DatabaseCore
             return data;
         }
 
+        public List<T> ExecuteReader<T>(string query) where T : class, new()
+        {
+            var queryResult = new List<T>();
+
+            var data = ExecuteReader(query);
+            foreach (DataRow row in data.Rows)
+            {
+                var result = new T();
+                var typeInfo = typeof (T);
+                foreach (var fieldInfo in typeInfo.GetFields())
+                {
+                    if(row[fieldInfo.Name] == null) continue;
+                    fieldInfo.SetValue(result, row[fieldInfo.Name]);
+                }
+
+                queryResult.Add(result);
+            }
+
+            return queryResult;
+        }
+
         public void ExecuteNonQuery(string query)
         {
             using (var conn = new MySqlConnection(DatabaseConnectionString))
@@ -81,9 +103,7 @@ namespace DatabaseCore
 
         public bool IsTableExist(string tableName)
         {
-            var tableQuery = string.Format(
-                @"SELECT count(*) FROM information_schema.tables WHERE table_schema = '{0}' AND table_name = '{1}'",
-                InitialCatalog, tableName);
+            var tableQuery = DatabaseHelper.CheckTableExistQuery(InitialCatalog, tableName);
             var result = ExecuteReader(tableQuery);
             return (long) result.Rows[0][0] > 0;
         }

@@ -11,13 +11,6 @@ using DatabaseCore.Model;
 
 namespace DatabaseCore
 {
-    public enum DDLType
-    {
-        CreateTable,
-        ModifyTable,
-        DropTable,
-    }
-
     public static class DatabaseHelper
     {
         public static string ToDatabaseType(this string type)
@@ -180,14 +173,16 @@ namespace DatabaseCore
             #endregion
         }
 
-        private static string DropTableQuery(this Table table)
+        public static string DropTableQuery(string tableName)
         {
-            return string.Format("DROP TABLE {0}", table.Name);
+            return string.Format("DROP TABLE {0}", tableName);
         }
 
-        private static string CheckTableExistQuery(this Table table)
+        public static string CheckTableExistQuery(string database, string tableName)
         {
-            return string.Format("SHOW TABLES LIKE \"{0}\"", table.Name);
+            return string.Format(
+                "SELECT count(*) FROM information_schema.tables WHERE table_schema = '{0}' AND table_name = '{1}'",
+                database, tableName);
         }
     }
 }
