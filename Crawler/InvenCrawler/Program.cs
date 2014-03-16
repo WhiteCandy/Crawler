@@ -12,17 +12,24 @@ namespace InvenCrawler
     {
         static void Main(string[] args)
         {
+            if (args.Length != 4)
+            {
+                var command = @"InvenCralwer.exe [server] [userId] [password] [database] [inven category id]";
+                Console.WriteLine("Parameters: {0}", command);
+                return;
+            }
+            
             var database = new Database {
-                Server = "",
-                UserId = "",
-                Password = "",
-                InitialCatalog = "",
+                Server = args[0],
+                UserId = args[1],
+                Password = args[2],
+                InitialCatalog = args[3],
             };
 
             database.SyncTable<Article>();
             database.SyncTable<Category>();
-            var result = database.ExecuteReader<Article>("SELECT * FROM Article");
-            Console.WriteLine(result.Count);
+
+            // start crawler
         }
     }
 }

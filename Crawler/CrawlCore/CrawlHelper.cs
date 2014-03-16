@@ -8,7 +8,7 @@ namespace CrawlCore
 {
     public static class CrawlHelper
     {
-        public static string CrawlIt(string url, int timeout)
+        public static string CrawlIt(this string url, int timeout)
         {
             return "";
         }
