@@ -12,7 +12,7 @@ namespace InvenCrawler
     {
         static void Main(string[] args)
         {
-            if (args.Length != 4)
+            if (args.Length != 5)
             {
                 const string command = @"InvenCralwer.exe [server] [userId] [password] [database] [inven category id]";
                 Console.WriteLine("Parameters: {0}", command);
