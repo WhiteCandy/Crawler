@@ -14,7 +14,7 @@ namespace InvenCrawler
         {
             if (args.Length != 4)
             {
-                var command = @"InvenCralwer.exe [server] [userId] [password] [database] [inven category id]";
+                const string command = @"InvenCralwer.exe [server] [userId] [password] [database] [inven category id]";
                 Console.WriteLine("Parameters: {0}", command);
                 return;
             }
@@ -29,7 +29,11 @@ namespace InvenCrawler
             database.SyncTable<Article>();
             database.SyncTable<Category>();
 
+
             // start crawler
+            var categoryId = int.Parse(args[4]);
+            var crawler = new InvenCrawler(categoryId);
+            crawler.Start(database);
         }
     }
 }

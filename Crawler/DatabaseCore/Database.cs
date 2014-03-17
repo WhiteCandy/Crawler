@@ -124,5 +124,10 @@ namespace DatabaseCore
             }
             return scheme;
         }
+
+        public void SyncData<T>(T row)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

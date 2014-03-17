@@ -20,12 +20,8 @@ namespace InvenCrawler.Scheme
 
         public bool IsDeleted;
         public string Author;
-        public int AuthorId;
         public DateTime WriteTime;
         public string Title;
         public string Content;
-        public int CommentCount;
-
-        public int TestField;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using DatabaseCore;
 using CrawlCore;
+using InvenCrawler.Helper;
 using InvenCrawler.Scheme;
 using System;
 using System.Collections.Generic;
@@ -13,12 +14,12 @@ namespace InvenCrawler
 {
     public class InvenCrawler
     {
-        protected readonly int _categoryId;
+        protected readonly int CategoryId;
         private int _lastCrawledArticleId;
 
         public InvenCrawler(int categoryId)
         {
-            _categoryId = categoryId;
+            CategoryId = categoryId;
         }
 
         public void Start(Database database)
@@ -40,15 +41,31 @@ namespace InvenCrawler
                 var nextArticleId = _lastCrawledArticleId + 1;
 
                 // 웹사이트 주소 구성
-                var targetUrl = MakeArticleUrl(_categoryId, nextArticleId);
+                var targetUrl = MakeArticleUrl(CategoryId, nextArticleId);
 
                 // 웹사이트 긁기 - 5초 이후 timeout
                 var rawHtml = targetUrl.CrawlIt(5000);
 
                 // 원하는 내용 추출
-                
+                var htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(rawHtml);
+
+                var article = new Article
+                {
+                    CategoryId = CategoryId,
+                    ArticleId = nextArticleId,
+                    RawHtml = rawHtml,
+                    CrawlingTime = DateTime.Now,
+                };
+
+                article.IsDeleted = htmlDoc.IsDeletedArticle();
+                article.Author = htmlDoc.ExtractAutor();
+                article.WriteTime = htmlDoc.ExtractWrittenTime();
+                article.Title = htmlDoc.ExtractTitle();
+                article.Content = htmlDoc.ExtractContent();
 
                 // 데이터베이스에 저장
+                database.SyncData<Article>(article);
 
                 // 최신 글인지 확인
                 if (_lastCrawledArticleId == lastArticleId)
@@ -71,7 +88,7 @@ namespace InvenCrawler
         private int GetLastArticleId()
         {
             // 웹사이트 주소 구성
-            var targetUrl = MakeCategoryUrl(_categoryId);
+            var targetUrl = MakeCategoryUrl(CategoryId);
 
             // 웹 사이트 긁기 - 5초 이후 timeout
             var rawHtml = targetUrl.CrawlIt(5000);
@@ -80,7 +97,7 @@ namespace InvenCrawler
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(rawHtml);
 
-            var lastArticleId = 0;
+            var lastArticleId = htmlDoc.ExtractLastArticleId();
             return lastArticleId;
         }
 
