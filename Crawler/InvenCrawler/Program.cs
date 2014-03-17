@@ -29,7 +29,6 @@ namespace InvenCrawler
             database.SyncTable<Article>();
             database.SyncTable<Category>();
 
-
             // start crawler
             var categoryId = int.Parse(args[4]);
             var crawler = new InvenCrawler(categoryId);

@@ -125,9 +125,39 @@ namespace DatabaseCore
             return scheme;
         }
 
-        public void SyncData<T>(T row)
+        public void SyncData<T>(T row) where T : class
         {
-            throw new NotImplementedException();
+            if (!IsElementExist<T>(row))
+            {
+                InsertData<T>(row);
+            }
+            else
+            {
+                UpdateData<T>(row);
+            }
+        }
+
+        public bool IsElementExist<T>(T row) where T : class
+        {
+            var elementExistQuery = DatabaseHelper.CheckElementExistQuery<T>(row);
+            if (elementExistQuery.Length == 0) return false;
+
+            var result = ExecuteReader(elementExistQuery);
+            return (long)result.Rows[0][0] > 0;
+        }
+
+        public void InsertData<T>(T row) where T : class
+        {
+            var insertQuery = DatabaseHelper.InsertElementQuery<T>(row);
+            if (insertQuery.Length > 0)
+                ExecuteNonQuery(insertQuery);
+        }
+
+        public void UpdateData<T>(T row) where T : class
+        {
+            var updateQuery = DatabaseHelper.UpdateElementQuery<T>(row);
+            if (updateQuery.Length > 0)
+                ExecuteNonQuery(updateQuery);
         }
     }
 }

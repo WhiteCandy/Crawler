@@ -184,5 +184,20 @@ namespace DatabaseCore
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = '{0}' AND table_name = '{1}'",
                 database, tableName);
         }
+
+        public static string CheckElementExistQuery<T>(T row) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public static string InsertElementQuery<T>(T row) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public static string UpdateElementQuery<T>(T row) where T : class
+        {
+            throw new NotImplementedException();
+        }
     }
 }
