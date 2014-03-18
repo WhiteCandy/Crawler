@@ -35,6 +35,7 @@ namespace CrawlCore
                 }
                 catch (WebException ex)
                 {
+                    LogHelper.Log(new Exception(url));
                     LogHelper.Log(ex);
                     tryCount++;
 

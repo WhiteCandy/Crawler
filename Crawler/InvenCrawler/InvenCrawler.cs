@@ -1,4 +1,5 @@
-﻿using DatabaseCore;
+﻿using CommonHelper;
+using DatabaseCore;
 using CrawlCore;
 using InvenCrawler.Helper;
 using InvenCrawler.Scheme;
@@ -42,33 +43,42 @@ namespace InvenCrawler
 
                 // 웹사이트 주소 구성
                 var targetUrl = MakeArticleUrl(CategoryId, nextArticleId);
-
-                // 웹사이트 긁기 - 5초 이후 timeout
-                var rawHtml = targetUrl.CrawlIt(Encoding.GetEncoding(51949), 5000);
-
-                // 원하는 내용 추출
-                var htmlDoc = new HtmlDocument();
-                htmlDoc.LoadHtml(rawHtml);
-
-                var article = new Article
+                
+                try
                 {
-                    CategoryId = CategoryId,
-                    ArticleId = nextArticleId,
-                    RawHtml = rawHtml,
-                    CrawlingTime = DateTime.Now,
-                };
 
-                article.IsDeleted = htmlDoc.IsDeletedArticle();
-                if (!article.IsDeleted)
-                {
-                    article.Author = htmlDoc.ExtractAutor();
-                    article.WriteTime = htmlDoc.ExtractWrittenTime();
-                    article.Title = htmlDoc.ExtractTitle();
-                    article.Content = htmlDoc.ExtractContent();
+                    // 웹사이트 긁기 - 5초 이후 timeout
+                    var rawHtml = targetUrl.CrawlIt(Encoding.GetEncoding(51949), 5000);
+
+                    // 원하는 내용 추출
+                    var htmlDoc = new HtmlDocument();
+                    htmlDoc.LoadHtml(rawHtml);
+
+                    var article = new Article
+                    {
+                        CategoryId = CategoryId,
+                        ArticleId = nextArticleId,
+                        RawHtml = rawHtml,
+                        CrawlingTime = DateTime.Now,
+                    };
+
+                    article.IsDeleted = htmlDoc.IsDeletedArticle();
+                    if (!article.IsDeleted)
+                    {
+                        article.Author = htmlDoc.ExtractAutor();
+                        article.WriteTime = htmlDoc.ExtractWrittenTime();
+                        article.Title = htmlDoc.ExtractTitle();
+                        article.Content = htmlDoc.ExtractContent();
+                    }
+
+                    // 데이터베이스에 저장
+                    database.SyncData<Article>(article);
                 }
-
-                // 데이터베이스에 저장
-                database.SyncData<Article>(article);
+                catch (Exception ex)
+                {
+                    LogHelper.Log(new Exception(targetUrl));
+                    LogHelper.Log(ex);
+                }
 
                 // 최신 글인지 확인
                 while (_lastCrawledArticleId == lastArticleId)
