@@ -144,8 +144,6 @@ namespace DatabaseCore
             var elementExistQuery = DatabaseHelper.CheckElementExistQuery<T>(row);
             if (elementExistQuery.Length == 0) return false;
 
-            Console.WriteLine(elementExistQuery);
-
             using (var conn = new MySqlConnection(DatabaseConnectionString))
             {
                 conn.Open();
@@ -176,8 +174,6 @@ namespace DatabaseCore
             var insertQuery = DatabaseHelper.InsertElementQuery<T>(row);
             if (insertQuery.Length == 0) return;
 
-            Console.WriteLine(insertQuery);
-
             using (var conn = new MySqlConnection(DatabaseConnectionString))
             {
                 conn.Open();
@@ -194,8 +190,7 @@ namespace DatabaseCore
                         }
                     }
 
-                    var insertedCount = command.ExecuteNonQuery();
-                    Console.WriteLine(insertedCount);
+                    command.ExecuteNonQuery();
                 }
             }
 
@@ -205,8 +200,6 @@ namespace DatabaseCore
         {
             var updateQuery = DatabaseHelper.UpdateElementQuery<T>(row);
             if (updateQuery.Length == 0) return;
-
-            Console.WriteLine(updateQuery);
 
             using (var conn = new MySqlConnection(DatabaseConnectionString))
             {
@@ -224,8 +217,7 @@ namespace DatabaseCore
                         }
                     }
 
-                    var updatedCount = command.ExecuteNonQuery();
-                    Console.WriteLine(updatedCount);
+                    command.ExecuteNonQuery();
                 }
             }
         }
