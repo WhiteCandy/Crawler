@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using DatabaseCore.Model;
 using MySql.Data.MySqlClient;
 using System.Data;
@@ -23,6 +24,7 @@ namespace DatabaseCore
                     UserID = UserId,
                     Password = Password,
                     Database = InitialCatalog,
+                    CharacterSet = "utf8",
                 }
                 .ConnectionString;
             }
@@ -142,22 +144,90 @@ namespace DatabaseCore
             var elementExistQuery = DatabaseHelper.CheckElementExistQuery<T>(row);
             if (elementExistQuery.Length == 0) return false;
 
-            var result = ExecuteReader(elementExistQuery);
-            return (long)result.Rows[0][0] > 0;
+            Console.WriteLine(elementExistQuery);
+
+            using (var conn = new MySqlConnection(DatabaseConnectionString))
+            {
+                conn.Open();
+                using (var command = new MySqlCommand(elementExistQuery, conn))
+                {
+                    var table = DatabaseHelper.ToDatabaseScheme<T>();
+                    foreach (var elem in table.ElementList.Where(e => e.IsKey))
+                    {
+                        var typeInfo = typeof (T);
+                        foreach (var fieldInfo in typeInfo.GetFields())
+                        {
+                            if (fieldInfo.Name != elem.Name) continue;
+                            command.Parameters.AddWithValue("@" + elem.Name, fieldInfo.GetValue(row));
+                        }
+                    }
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        reader.Read();
+                        return (long) reader[0] > 0;
+                    }
+                }
+            }
         }
 
         public void InsertData<T>(T row) where T : class
         {
             var insertQuery = DatabaseHelper.InsertElementQuery<T>(row);
-            if (insertQuery.Length > 0)
-                ExecuteNonQuery(insertQuery);
+            if (insertQuery.Length == 0) return;
+
+            Console.WriteLine(insertQuery);
+
+            using (var conn = new MySqlConnection(DatabaseConnectionString))
+            {
+                conn.Open();
+                using (var command = new MySqlCommand(insertQuery, conn))
+                {
+                    var table = DatabaseHelper.ToDatabaseScheme<T>();
+                    foreach (var elem in table.ElementList)
+                    {
+                        var typeInfo = typeof(T);
+                        foreach (var fieldInfo in typeInfo.GetFields())
+                        {
+                            if (fieldInfo.Name != elem.Name) continue;
+                            command.Parameters.AddWithValue("@" + elem.Name, fieldInfo.GetValue(row));
+                        }
+                    }
+
+                    var insertedCount = command.ExecuteNonQuery();
+                    Console.WriteLine(insertedCount);
+                }
+            }
+
         }
 
         public void UpdateData<T>(T row) where T : class
         {
             var updateQuery = DatabaseHelper.UpdateElementQuery<T>(row);
-            if (updateQuery.Length > 0)
-                ExecuteNonQuery(updateQuery);
+            if (updateQuery.Length == 0) return;
+
+            Console.WriteLine(updateQuery);
+
+            using (var conn = new MySqlConnection(DatabaseConnectionString))
+            {
+                conn.Open();
+                using (var command = new MySqlCommand(updateQuery, conn))
+                {
+                    var table = DatabaseHelper.ToDatabaseScheme<T>();
+                    foreach (var elem in table.ElementList)
+                    {
+                        var typeInfo = typeof(T);
+                        foreach (var fieldInfo in typeInfo.GetFields())
+                        {
+                            if (fieldInfo.Name != elem.Name) continue;
+                            command.Parameters.AddWithValue("@" + elem.Name, fieldInfo.GetValue(row));
+                        }
+                    }
+
+                    var updatedCount = command.ExecuteNonQuery();
+                    Console.WriteLine(updatedCount);
+                }
+            }
         }
     }
 }

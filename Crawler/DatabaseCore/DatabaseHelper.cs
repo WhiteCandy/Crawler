@@ -187,17 +187,42 @@ namespace DatabaseCore
 
         public static string CheckElementExistQuery<T>(T row) where T : class
         {
-            throw new NotImplementedException();
+            var table = DatabaseHelper.ToDatabaseScheme<T>();
+            if (table.ElementList.Count(e => e.IsKey) == 0) return "";
+
+            var queryBuilder = new StringBuilder();
+            queryBuilder.AppendFormat("SELECT COUNT(*) FROM {0} ", table.Name);
+            queryBuilder.Append("WHERE ");
+            queryBuilder.AppendFormat("{0}",
+                string.Join(" AND ", table.ElementList.Where(e => e.IsKey).Select(e => e.Name + "=@" + e.Name)));
+
+            return queryBuilder.ToString();
         }
 
         public static string InsertElementQuery<T>(T row) where T : class
         {
-            throw new NotImplementedException();
+            var table = DatabaseHelper.ToDatabaseScheme<T>();
+
+            var queryBuilder = new StringBuilder();
+            queryBuilder.AppendFormat("INSERT INTO {0} " + Environment.NewLine, table.Name);
+            queryBuilder.AppendFormat("({0})" + Environment.NewLine, string.Join(",", table.ElementList.Select(e => e.Name)));
+            queryBuilder.AppendLine("VALUES");
+            queryBuilder.AppendFormat("({0})", string.Join(",", table.ElementList.Select(e => "@" + e.Name)));
+
+            return queryBuilder.ToString();
         }
 
         public static string UpdateElementQuery<T>(T row) where T : class
         {
-            throw new NotImplementedException();
+            var table = DatabaseHelper.ToDatabaseScheme<T>();
+
+            var queryBuilder = new StringBuilder();
+            queryBuilder.AppendFormat("UPDATE {0} SET " + Environment.NewLine, table.Name);
+            queryBuilder.AppendLine(string.Join(",", table.ElementList.Where(e => !e.IsKey).Select(e => e.Name + "=@" + e.Name)));
+            queryBuilder.AppendLine("WHERE");
+            queryBuilder.Append(string.Join(" AND ", table.ElementList.Where(e => e.IsKey).Select(e => e.Name + "=@" + e.Name)));
+
+            return queryBuilder.ToString();
         }
     }
 }

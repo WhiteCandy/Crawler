@@ -11,7 +11,7 @@ namespace CrawlCore
 {
     public static class CrawlHelper
     {
-        public static string CrawlIt(this string url, int timeout)
+        public static string CrawlIt(this string url, Encoding encoding, int timeout)
         {
             var tryCount = 0;
             while (true)
@@ -25,7 +25,7 @@ namespace CrawlCore
                     webRequest.Timeout = timeout;
 
                     using (var webResponse = (HttpWebResponse) webRequest.GetResponse())
-                    using (var reader = new StreamReader(webResponse.GetResponseStream()))
+                    using (var reader = new StreamReader(webResponse.GetResponseStream(), encoding))
                     {
                         var rawHtml = reader.ReadToEnd();
                         var statusCode = webResponse.StatusCode;

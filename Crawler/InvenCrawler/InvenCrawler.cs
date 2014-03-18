@@ -27,7 +27,7 @@ namespace InvenCrawler
             var lastArticle = database.ExecuteReader<Article>("SELECT * FROM Article ORDER BY ArticleId DESC LIMIT 1");
             if (lastArticle.Count == 0)
             {
-                _lastCrawledArticleId = 1;
+                _lastCrawledArticleId = 0;
             }
             else
             {
@@ -44,7 +44,7 @@ namespace InvenCrawler
                 var targetUrl = MakeArticleUrl(CategoryId, nextArticleId);
 
                 // 웹사이트 긁기 - 5초 이후 timeout
-                var rawHtml = targetUrl.CrawlIt(5000);
+                var rawHtml = targetUrl.CrawlIt(Encoding.GetEncoding(51949), 5000);
 
                 // 원하는 내용 추출
                 var htmlDoc = new HtmlDocument();
@@ -59,16 +59,19 @@ namespace InvenCrawler
                 };
 
                 article.IsDeleted = htmlDoc.IsDeletedArticle();
-                article.Author = htmlDoc.ExtractAutor();
-                article.WriteTime = htmlDoc.ExtractWrittenTime();
-                article.Title = htmlDoc.ExtractTitle();
-                article.Content = htmlDoc.ExtractContent();
+                if (!article.IsDeleted)
+                {
+                    article.Author = htmlDoc.ExtractAutor();
+                    article.WriteTime = htmlDoc.ExtractWrittenTime();
+                    article.Title = htmlDoc.ExtractTitle();
+                    article.Content = htmlDoc.ExtractContent();
+                }
 
                 // 데이터베이스에 저장
                 database.SyncData<Article>(article);
 
                 // 최신 글인지 확인
-                if (_lastCrawledArticleId == lastArticleId)
+                while (_lastCrawledArticleId == lastArticleId)
                 {
                     lastArticleId = GetLastArticleId();
                     if (_lastCrawledArticleId == lastArticleId)
@@ -77,11 +80,11 @@ namespace InvenCrawler
                         Thread.Sleep(10 * 60 * 1000);
                     }
                 }
-                else
-                {
-                    // 각 글을 crawling 한 후 10초간 휴식
-                    Thread.Sleep(10 * 1000);
-                }
+
+                // 각 글을 crawling 한 후 3초간 휴식
+                Thread.Sleep(3 * 1000);
+
+                _lastCrawledArticleId++;
             }
         }
 
@@ -91,7 +94,7 @@ namespace InvenCrawler
             var targetUrl = MakeCategoryUrl(CategoryId);
 
             // 웹 사이트 긁기 - 5초 이후 timeout
-            var rawHtml = targetUrl.CrawlIt(5000);
+            var rawHtml = targetUrl.CrawlIt(Encoding.GetEncoding(51949), 5000);
 
             // 원하는 내용 추출
             var htmlDoc = new HtmlDocument();
