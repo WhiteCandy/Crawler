@@ -81,10 +81,10 @@ namespace InvenCrawler
                 }
 
                 // 최신 글인지 확인
-                while (_lastCrawledArticleId == lastArticleId)
+                while (nextArticleId == lastArticleId)
                 {
                     lastArticleId = GetLastArticleId();
-                    if (_lastCrawledArticleId == lastArticleId)
+                    if (nextArticleId == lastArticleId)
                     {
                         // 글이 없을 경우 스레드 10분간 휴식
                         Thread.Sleep(10 * 60 * 1000);
